@@ -13,6 +13,41 @@ A custom .esc transpiler to c language made in JS
 
 --
 
+## Types
+
+* int
+* string
+
+## Example
+
+Input: 
+```
+//input.esc
+int a 10
+int b 20
+int c 30
+```
+```c
+// output.c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+ 
+int a = 10;
+int b = 20;
+int c = 30;
+
+return 0; 
+
+}
+```
+
+## Future Plans
+
+* Generate binary code from GCC
+* Assign value of variable "a" to variable "b" of same types
+
 ## Author
 
 * Matheus Pedroni
