@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 function lexer (code) {
     return code.split(/\s+/)
         .filter(function (t) { return t.length > 0 })
@@ -49,4 +51,23 @@ function parser (tokens) {
     return parsed;
 }
 
-console.log(parser(lexer("int a 10 int b 20")));
+function generator(parsed) {
+    let generated = "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n ";
+
+    parsed.forEach((entry) => {
+        if (entry.type == 'variable') {
+            generated += "\n" + entry.object + " " + entry.name + " = " + entry.value + ";";
+        }
+    });
+
+    return generated + "\n\nreturn 0; \n\n}";
+}
+
+let contents = fs.readFileSync('input.esc', 'utf8');
+
+let compiled = parser(lexer(contents));
+
+fs.writeFile('output.c', generator(compiled), (err) => {  
+    if (err) throw err;
+    console.log('Generated >> output.c');
+});
