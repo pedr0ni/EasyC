@@ -26,6 +26,7 @@ Input:
 int a 10
 int b 20
 int c 30
+string helloworld = "Hello World!"
 ```
 ```c
 // output.c
@@ -37,6 +38,7 @@ int main() {
 int a = 10;
 int b = 20;
 int c = 30;
+char* helloworld = "Hello World!"
 
 return 0; 
 
