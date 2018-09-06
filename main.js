@@ -64,6 +64,7 @@ function parser (tokens) {
                     values.forEach(element => {
                         stringValue += element.value + " ";
                     });
+                    stringValue = stringValue.substring(0, stringValue.lastIndexOf(" "));
                     
                     if (value.type != 'word') {
                         throw 'É esperado um texto para o tipo (string).';
