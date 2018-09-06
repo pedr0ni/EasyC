@@ -10,45 +10,87 @@ function lexer (code) {
         })
 }
 
-const Types = [
-    'int',
-    'string'
-];
+let Types = {
+    int: {
+        type: 'int',
+        cdef: 'int'
+    },
+    string: {
+        type: 'string',
+        cdef: 'char*'
+    }
+
+}
+
+function getType(typeName) {
+    return Types[typeName];
+}
+
 
 function parser (tokens) {
     let parsed = [];
     while (tokens.length > 0) {
 
         let currentToken = tokens.shift();
-        if (currentToken.type == 'word' && Types.indexOf(currentToken.value) != -1) {
+
+        if (currentToken.type == 'word' && getType(currentToken.value) != null && currentToken.value.charAt(currentToken.value.length - 1) != '"') {
             // É uma variavel
             let expression = {
                 type: 'variable',
                 object: currentToken.value
             };
-
+            let name = tokens.shift();
+            let value = tokens.shift();
             switch (expression.object) {
+                
                 case 'int':
-                    let name = tokens.shift();
-                    let value = tokens.shift();
                     if (name.type != 'word') {
                         throw 'É esperado uma palavra para nome de váriavel.';
-                    } else if (!isNaN(name.value.charAt(0))) {
-                        throw 'Nomes de váriaveis não podem iniciar com números.';
                     }
                     if (value.type != 'number') {
                         throw 'É esperado um número inteiro para o tipo (int). ';
                     }
-                    expression.name = name.value;
                     expression.value = value.value;
                     break;
+                case 'string':
+                    let stringToken = value;
+                    let values = [stringToken];
+                    while (stringToken.value.charAt(stringToken.value.length - 1) != '"') {
+                        stringToken = tokens.shift();
+                        values.push(stringToken);
+                    }
+
+                    let stringValue = "";
+                    values.forEach(element => {
+                        stringValue += element.value + " ";
+                    });
+                    
+                    if (value.type != 'word') {
+                        throw 'É esperado um texto para o tipo (string).';
+                    }
+                    if (value.value.charAt(0) != '\"') {
+                        throw 'O tipo de objeto (string) precisa estar entre aspas duplas.';
+                    }
+                    expression.value = stringValue;
+                    break;
+                    
             }
+            VariableNameCheck(name);
+            expression.name = name.value;
+            
             parsed.push(expression);
-        } else if (currentToken.type == 'word' && Types.indexOf(currentToken.value) == -1) {
-            throw 'Tipo de objeto desconhecido.';
+        } else if (currentToken.type == 'word' && getType(currentToken.value) == null) {
+            
+            throw 'Tipo de objeto desconhecido. (' + currentToken.value + ")";
         }
     }
     return parsed;
+}
+
+function VariableNameCheck(variable) {
+    if (!isNaN(variable.value.charAt(0))) {
+        throw 'Nomes de váriaveis não podem iniciar com números.';
+    }
 }
 
 function generator(parsed) {
@@ -56,7 +98,7 @@ function generator(parsed) {
 
     parsed.forEach((entry) => {
         if (entry.type == 'variable') {
-            generated += "\n" + entry.object + " " + entry.name + " = " + entry.value + ";";
+            generated += "\n" + getType(entry.object).cdef + " " + entry.name + " = " + entry.value + ";";
         }
     });
 
