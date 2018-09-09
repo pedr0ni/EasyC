@@ -18,31 +18,55 @@ A custom .esc transpiler to c language made in JS
 * int
 * string
 
-## Example
+## Examples
 
-Input: 
+### Include and Define
+
+~ input.esc
 ```
-//input.esc
-int a 10
-int b 20
-int c 30
-string helloworld = "Hello World!"
+include stdio
+include stdlib
+
+define MAX 50
+define MIN 5
 ```
+
+~ output.c
 ```c
-// output.c
 #include <stdio.h>
 #include <stdlib.h>
+#define MAX 50
+#define MIN 5
+```
 
-int main() {
- 
-int a = 10;
-int b = 20;
-int c = 30;
-char* helloworld = "Hello World!"
+### Create Variables
 
-return 0; 
+#### Integer
 
-}
+~ input.esc
+```
+int max 50
+int min 5
+```
+
+~ output.c
+```c
+int max = 50;
+int min = 5;
+```
+
+#### Strings
+
+~ input.esc
+```
+string Hello "Hello"
+string HelloWorld "Hello World"
+```
+
+~ output.c
+```c
+char* Hello = "Hello";
+char* HelloWorld = "Hello World";
 ```
 
 ## Future Plans
