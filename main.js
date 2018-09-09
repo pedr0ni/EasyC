@@ -10,6 +10,8 @@ function lexer (code) {
         })
 }
 
+let Variables = [];
+
 let Types = {
     int: {
         type: 'int',
@@ -19,13 +21,37 @@ let Types = {
         type: 'string',
         cdef: 'char*'
     }
+}
 
+let Functions = {
+    print: {
+        type: 'print',
+        cdef: 'printf(%strings%, %types%)'
+    }
+}
+
+let Specials = {
+    include: {
+        type: 'include',
+        cdef: '#include <%lib%>'
+    },
+    define: {
+        type: 'define',
+        cdef: '#define %name% %value%'
+    }
 }
 
 function getType(typeName) {
     return Types[typeName];
 }
 
+function getFunction(functionName) {
+    return Functions[functionName];
+}
+
+function getSpecial(specialName) {
+    return Specials[specialName];
+}
 
 function parser (tokens) {
     let parsed = [];
@@ -78,10 +104,26 @@ function parser (tokens) {
             }
             VariableNameCheck(name);
             expression.name = name.value;
-            
             parsed.push(expression);
-        } else if (currentToken.type == 'word' && getType(currentToken.value) == null) {
-            
+        } else if (currentToken.type == 'word' && getSpecial(currentToken.value) != null) {
+            let expression = {
+                type: 'special',
+                name: currentToken.value
+            };
+
+            switch (expression.name) {
+                case 'include':
+                    expression.output = getSpecial(currentToken.value).cdef.replace('%lib%', tokens.shift().value);
+                    break;
+                case 'define':
+                    let varName = tokens.shift();
+                    VariableNameCheck(varName);
+                    let output = getSpecial(currentToken.value).cdef.replace('%name%', varName.value).replace('%value%', tokens.shift().value);
+                    expression.output = output;
+                    break;
+            }
+            parsed.push(expression);
+        } else if (currentToken.type == 'word' && getType(currentToken.value) == null && getFunction(currentToken.value) == null && getSpecial(currentToken.value) == null) {
             throw 'Tipo de objeto desconhecido. (' + currentToken.value + ")";
         }
     }
@@ -95,12 +137,20 @@ function VariableNameCheck(variable) {
 }
 
 function generator(parsed) {
-    let generated = "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n ";
+    let generated = "";
 
+    //Parse Includes
+    parsed.forEach(element => {
+        if (element.type != 'special') return;
+        generated += "\n" + element.output;
+    });
+
+    generated += "\n\nint main() {\n ";
+
+    // Parse Variables
     parsed.forEach((entry) => {
-        if (entry.type == 'variable') {
-            generated += "\n" + getType(entry.object).cdef + " " + entry.name + " = " + entry.value + ";";
-        }
+        if (entry.type != 'variable') return;
+        generated += "\n" + getType(entry.object).cdef + " " + entry.name + " = " + entry.value + ";";
     });
 
     return generated + "\n\nreturn 0; \n\n}";
